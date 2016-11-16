@@ -66,7 +66,6 @@ class Server(Thread):
                         connections_to_drop.append(key)
                 for key in connections_to_drop:
                     self.dead_connections[key]=self.active_connections.pop(key)
-                print(self.active_connections, self.dead_connections)
 
     def initiate_connection(self, address):
         while True:

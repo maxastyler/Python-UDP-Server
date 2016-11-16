@@ -9,12 +9,12 @@ class Connection:
         self.s_number_b=int.to_bytes(self.s_number, 4, BYTE_ORDER)
         self.rs_number=0
         self.rs_number_b=int.to_bytes(self.rs_number, 4, BYTE_ORDER)
-        self.ack_field=5
+        self.ack_field=0
         self.ack_field_b=int.to_bytes(self.ack_field, 4, BYTE_ORDER)
         self.last_message_time=time()
 
     def tell_alive(self, socket):
-        socket.sendto(HEADER_NAME+self.username+self.s_number_b+self.rs_number_b+self.ack_field_b, self.address)
+        self.send_data(BYTE_COMMAND['still_alive'], socket)
 
     def process_data(self, data): 
         new_rs=int.from_bytes(data[0:4], BYTE_ORDER)
@@ -39,7 +39,7 @@ class Connection:
                 self.ack_field=0
                 self.ack_field_b=int.to_bytes(self.ack_field, 4, BYTE_ORDER)
             else:
-                self.ack_field=(self.ack_field<<ack_shift)%(1<<ACK_FIELD_LENGTH)
+                self.ack_field=(self.ack_field<<ack_shift)%(1<<ACK_FIELD_LENGTH)|(1<<ack_shift-1)
                 self.ack_field_b=int.to_bytes(self.ack_field, 4, BYTE_ORDER)
             self.rs_number=new_rs
             self.rs_number_b=int.to_bytes(new_rs, 4, BYTE_ORDER)
@@ -51,6 +51,3 @@ class Connection:
             if ack_point>0 and ack_point<=ACK_FIELD_LENGTH:            
                 self.ack_field |= 1<<(ack_point-1)
                 self.ack_field_b=int.to_bytes(self.ack_field, 4, BYTE_ORDER)
-
-if __name__=='__main__':
-    c=Connection()

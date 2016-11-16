@@ -38,7 +38,7 @@ class Client(Thread):
                 if data:
                     if data[0:8]==HEADER_NAME+self.username:
                         self.connection.process_data(data[8:])
-                if time()-self.alive_time>1:
+                if time()-self.alive_time>0.6:
                     self.alive_time=time()
                     if self.connection is not None:
                         self.connection.tell_alive(self.sock)
