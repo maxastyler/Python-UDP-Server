@@ -4,7 +4,8 @@ INT32_MAX=int('ffffffff', 16)
 HALF_MAX=INT32_MAX/2
 PACKET_SIZE=64 #packet size in bytes
 BYTE_ORDER="big" #use big endian bytes
-ACK_FIELD_LENGTH=4
+ACK_FIELD_LENGTH=32
+CONNECTION_TIME_OUT=10 #in seconds
 
 def fnv1a(bytes_to_hash):
     hashed=FNV_OFFSET_BASIS
@@ -20,6 +21,8 @@ HEADER_NAME=fnv1a(b"Client Server Program")
 INT_COMMAND={}
 INT_COMMAND['connect']=0x1
 INT_COMMAND['data_packet']=0x2
+INT_COMMAND['accept_connection']=0x3
+INT_COMMAND['still_alive']=0x4
 
 #4 byte command strings
 BYTE_COMMAND={}

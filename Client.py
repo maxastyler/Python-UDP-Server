@@ -3,18 +3,19 @@ from helpers import *
 from threading import Thread
 from queue import Queue
 from Connection import Connection
-
-sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.setblocking(False)
+from time import sleep, time
 
 class Client(Thread):
-    def __init__(self, incoming_queue, outgoing_queue, address="localhost", port=10000):
+    def __init__(self, incoming_queue, outgoing_queue, address="127.0.0.1", port=10000):
         super().__init__()
         self.socket_setup=False
         self.incoming_queue=incoming_queue
         self.outgoing_queue=outgoing_queue
         self.address=(address, port)
         self.connected=False
+        self.connection=None
+        self.alive_time=time()
+        self.username=None
 
     def setup_socket(self):
         self.sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -27,21 +28,48 @@ class Client(Thread):
             return
         while True:
             if not self.connected:
-                self.try_to_connect()
+                self.initiate_connection(self.address)
             else:
                 data=False
-                msg=input("MESSAGE: ")
-                sock.sendto(create_packet(BYTE_COMMAND['connect']), address)
                 try:
-                    data, addr= sock.recvfrom(PACKET_SIZE)
+                    data, addr= self.sock.recvfrom(PACKET_SIZE)
                 except BlockingIOError:
                     pass
                 if data:
-                    print(data)
+                    if data[0:8]==HEADER_NAME+self.username:
+                        self.connection.process_data(data[8:])
+                if time()-self.alive_time>1:
+                    self.alive_time=time()
+                    if self.connection is not None:
+                        self.connection.tell_alive(self.sock)
+                        if time()-self.connection.last_message_time>CONNECTION_TIME_OUT:
+                            self.connection=None
+                            self.connected=False
 
-    def try_to_connect(self):
-        pass
-
+    def initiate_connection(self, address):
+        time_out=False
+        count=0
+        while not self.connected and not time_out:
+            self.sock.sendto(HEADER_NAME+BYTE_COMMAND['connect'], self.address)
+            t_now=time()
+            while time()-t_now<2:
+                addr=None
+                data=None
+                try:
+                    data, addr = self.sock.recvfrom(PACKET_SIZE)
+                except Exception as e:
+                    pass
+                if addr==self.address and data[0:8]==HEADER_NAME+BYTE_COMMAND['accept_connection']:
+                    self.connection=Connection(addr, data[8:PACKET_SIZE])
+                    self.username=data[8:PACKET_SIZE]
+                    self.connected=True
+                    break
+            sleep(1)
+            count+=1
+            if count>10:
+                time_out=True
+        print("CONNECTED")
+                
 if __name__=='__main__':
     i_queue=Queue()
     o_queue=Queue()
