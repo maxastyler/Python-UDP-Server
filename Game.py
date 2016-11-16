@@ -24,10 +24,10 @@ class Game:
             while not self.i_queue.empty():
                 item=self.i_queue.get()
                 if item[0]=='input':
-                    if item[1]&1<<0: self.pos_y+=1
-                    if item[1]&1<<1: self.pos_y-=1
-                    if item[1]&1<<2: self.pos_x-=1
-                    if item[1]&1<<3: self.pos_x+=1
+                    if item[1]&1<<0: self.pos_y+=3
+                    if item[1]&1<<1: self.pos_y-=3
+                    if item[1]&1<<2: self.pos_x-=3
+                    if item[1]&1<<3: self.pos_x+=3
                 self.i_queue.task_done()
             if time()-self.update_timer>0.2:
                 self.o_queue.put(("position", int.to_bytes(abs(self.pos_x), 4, BYTE_ORDER)+int.to_bytes(abs(self.pos_y), 4, BYTE_ORDER)))

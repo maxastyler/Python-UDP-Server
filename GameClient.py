@@ -23,7 +23,7 @@ class GameClient:
     def __init__(self):
         self.i_queue=Queue()
         self.o_queue=Queue()
-        self.client=Client(self.o_queue, self.i_queue)
+        self.client=Client(self.o_queue, self.i_queue, address=sys.argv[1])
         self.client.setup_socket()
         self.client.setDaemon(True)
         self.pos_x=0
@@ -50,7 +50,6 @@ class GameClient:
                     self.pos_y=item[2]
                 self.i_queue.task_done()
             input_bytes=make_input_bytes(pygame.key.get_pressed())
-            print(input_bytes)
             if input_bytes is not None and time()-self.input_timer>0.05:
                 self.input_timer=time()
                 self.o_queue.put(input_bytes)
