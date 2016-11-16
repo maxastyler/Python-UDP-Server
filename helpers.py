@@ -23,6 +23,8 @@ INT_COMMAND['connect']=0x1
 INT_COMMAND['data_packet']=0x2
 INT_COMMAND['accept_connection']=0x3
 INT_COMMAND['still_alive']=0x4
+INT_COMMAND['input']=0x5
+INT_COMMAND['position']=0x6
 
 #4 byte command strings
 BYTE_COMMAND={}

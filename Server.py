@@ -42,7 +42,10 @@ class Server(Thread):
             return
         while True:
             while not self.incoming_queue.empty():
-                print(self.incoming_queue.get())
+                incoming=self.incoming_queue.get()
+                if incoming[0]=='position':
+                    for connection in self.active_connections:
+                        self.active_connections[connection].send_data(BYTE_COMMAND['position']+incoming[1], self.sock)
                 self.incoming_queue.task_done()
             data=False
             try:
@@ -54,7 +57,10 @@ class Server(Thread):
                     #We have received a packet with the correct header. Time to process it.
                     data=data[4:]
                     if data[0:4] in self.active_connections:
-                        self.active_connections[data[0:4]].process_data(data[4:]) 
+                        processed_data=self.active_connections[data[0:4]].process_data(data[4:]) 
+                        if processed_data is not None:
+                            if processed_data[0]=='input':
+                                self.outgoing_queue.put(processed_data)
                     if data == BYTE_COMMAND['connect']:
                         self.initiate_connection(addr)
             if time()-self.alive_time>1:
@@ -75,7 +81,6 @@ class Server(Thread):
         self.sock.sendto(HEADER_NAME+BYTE_COMMAND['accept_connection']+username, address)
         self.active_connections[username]=Connection(address, username)
         print("CONNECTED to ", username)
-
 
 if __name__=='__main__':
     i_queue=Queue()

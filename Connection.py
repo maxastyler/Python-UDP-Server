@@ -20,6 +20,13 @@ class Connection:
         new_rs=int.from_bytes(data[0:4], BYTE_ORDER)
         self.ack_check(new_rs)
         self.last_message_time=time()
+        data=data[12:]
+        if data[0:4]==BYTE_COMMAND['input']:
+            return ("input", int.from_bytes(data[4:], BYTE_ORDER))
+        elif data[0:4]==BYTE_COMMAND['position']:
+            return ("position", int.from_bytes(data[4:8], BYTE_ORDER), int.from_bytes(data[8:12], BYTE_ORDER))
+        else:
+            return None
 
     def send_data(self, data, socket):
         message=HEADER_NAME+self.username+self.s_number_b+self.rs_number_b+self.ack_field_b+data

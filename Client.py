@@ -27,6 +27,12 @@ class Client(Thread):
             print("Socket not setup! Run Client.socket_setup() first")
             return
         while True:
+            input_bytes=None
+            while not self.incoming_queue.empty():
+                input_bytes=self.incoming_queue.get()
+                self.incoming_queue.task_done()
+            if input_bytes is not None:
+                self.connection.send_data(BYTE_COMMAND['input']+input_bytes, self.sock) 
             if not self.connected:
                 self.initiate_connection(self.address)
             else:
@@ -37,7 +43,10 @@ class Client(Thread):
                     pass
                 if data:
                     if data[0:8]==HEADER_NAME+self.username:
-                        self.connection.process_data(data[8:])
+                        processed_data=self.connection.process_data(data[8:])
+                        if processed_data is not None:
+                            self.outgoing_queue.put(processed_data)
+                        
                 if time()-self.alive_time>0.6:
                     self.alive_time=time()
                     if self.connection is not None:
